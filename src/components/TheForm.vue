@@ -1,26 +1,26 @@
 <template>
   <form @submit.prevent="submitForm" >
-    <div class="form-control">
+    <div class="form-control" :class="{invalid: v$.surname.$error}">
       <label for="surname">Фамилия</label>
       <input id="surname" name="surname" type="text" v-model="state.surname" />
       <span v-if="v$.surname.$error">Пожалуйста, введите фамилию</span>
     </div>
-    <div class="form-control">
+    <div class="form-control" :class="{invalid: v$.name.$error}">
       <label for="name">Имя</label>
       <input id="name" name="name" type="text" v-model="state.name" /> 
       <span v-if="v$.name.$error">Пожалуйста, введите имя</span>
     </div>
     <div class="form-control">
-      <label for="dadname">отчество</label>
+      <label for="dadname">Отчество</label>
       <input id="dadname" name="dadname" type="text" v-model="state.dadname"/>
     </div>
-    <div class="form-control">
+    <div class="form-control" :class="{invalid: v$.birthday.$error}">
       <label for="birthday">Дата рождения</label>
       <input id="birthday" name="birthday" type="date" v-model="state.birthday"/> <span v-if="v$.birthday.$error">Пожалуйста, введите дату рождения</span>
     </div>
     <div class="form-control">
       <label for="phone">Номер телефона</label>
-      <input id="phone" name="phone" type="number" v-model="state.phoneNumber"/>
+      <input id="phone" name="phone" type="tel" v-model="state.phoneNumber"/> <span v-if="v$.phoneNumber.$error">Пожалуйста, введите верный номер телефона, который начинается с цифры 7</span>
     </div>
     <div class="form-control">
       <h2>Пол</h2>
@@ -34,7 +34,7 @@
       </div>
     </div>
     
-    <div class="form-control">
+    <div class="form-control" :class="{invalid: v$.clientGroup.$error}">
       <label>Группа клиентов: </label> 
       <div>
         <input id="client-group-vip" name="client-group" type="checkbox" v-model="state.clientGroup" value="vip" />
@@ -72,7 +72,7 @@
 
     <br>
     <h2>Адрес:</h2>
-
+    <br>
     <div class="form-control">
       <label for="index">Индекс</label>
       <input id="index" name="index" type="text"  v-model="state.address.index"/>
@@ -85,7 +85,7 @@
       <label for="region">Область</label>
       <input id="region" name="region" type="text" v-model="state.address.region"/>
     </div>
-    <div class="form-control">
+    <div class="form-control" :class="{invalid: v$.address.city.$error}">
       <label for="city">Город</label>
       <input id="city" name="city" type="text" v-model="state.address.city"/>
       <span v-if="v$.clientGroup.$error">Пожалуйста, введите город</span>
@@ -102,15 +102,16 @@
     <!-- почему поле называется паспорт, а документы на выбор? -->
     <h2>Паспорт</h2>
 
-    <div class="form-control">
+    <div class="form-control" :class="{invalid: v$.document.name.$error}">
       <label for="document">Тип документа </label>
       <select  id="document" name="document" v-model="state.document.name">
         <option value="passport">Паспорт</option>
         <option value="certificate">Свидетельство</option>
         <option value="license">Вод.удостоверение</option>
       </select>
-      <span v-if="v$.clientGroup.$error">Пожалуйста, введите тип документа</span>
+      
     </div>
+    <span v-if="v$.clientGroup.$error">Пожалуйста, введите тип документа</span>
 
     <div class="form-control">
       <label for="seria">Серия</label>
@@ -127,8 +128,8 @@
       <input id="issue" name="issue" type="text" v-model="state.document.issue"/>
     </div>
 
-    <div class="form-control">
-      <label for="issue-date">дата выдачи</label>
+    <div class="form-control" :class="{invalid: v$.document.issueDate.$error}">
+      <label for="issue-date">Дата выдачи</label>
       <input id="issue-date" name="issue-date" type="date" v-model="state.document.issueDate"/>
       <span v-if="v$.clientGroup.$error">Пожалуйста, введите дату выдачи</span>
     </div>
@@ -141,7 +142,7 @@
 </template>
 
 <script>
-import { required } from 'vuelidate/lib/validators'
+import { required, numeric } from 'vuelidate/lib/validators'
 import { useVuelidate } from '@vuelidate/core'
 import {reactive, computed} from 'vue'
 
@@ -178,7 +179,12 @@ export default {
         surname: { required},
         name: { required},
         birthday: { required },
-        phoneNumber: { required },
+        phoneNumber: { required, numeric, 
+        elevenDigit(value) {
+          return value.trim().length === 11;
+        }, startsFromSeven(value) {
+          return Array.from(String(value), Number)[0] === 7
+        }},
         clientGroup: { required },
         address: {
           city: {required}
@@ -201,15 +207,14 @@ export default {
   
   methods: {
     submitForm() {
-      console.log(this.v$)
       this.v$.$validate()
+      console.log(this.v$)
       if (!this.v$.$error) {
-        alert('Form successfully submited')
+        alert('Форма успешно заполнена')
         
       } else {
-        alert('Form failed validate')
-        console.log(this.v$.$errors)
-        console.log(this.state.document.name)
+        alert('Форма заполнена неверно')
+       
       }
       
     },
@@ -219,6 +224,8 @@ export default {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@300&display=swap');
+
 form {
   margin: 2rem auto;
   max-width: 40rem;
@@ -226,6 +233,7 @@ form {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.26);
   padding: 2rem;
   background-color: #ffffff;
+  font-family: 'Merriweather', serif;
 }
 
 .form-control {
@@ -240,6 +248,10 @@ form {
   color: red;
 }
 
+span {
+  color:red;
+}
+
 label {
   font-weight: bold;
 }
@@ -251,10 +263,13 @@ h2 {
 
 input,
 select {
-  display: block;
+  border: none;
+  outline: none;
+  border-bottom: 1px solid #ddd;
+  font-size: 1em;
+  padding: 5px 0;
+  margin: 10px 0 5px 0;
   width: 100%;
-  font: inherit;
-  margin-top: 0.5rem;
 }
 
 select {
